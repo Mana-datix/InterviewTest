@@ -8,15 +8,12 @@ provider:
   versionFunctions: false
   region: ap-southeast-2
 
-  # topicName: sendUserInfo
   iamManagedPolicies:
     - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
     - arn:aws:iam::aws:policy/AmazonSNSFullAccess
     - arn:aws:iam::aws:policy/AmazonSQSFullAccess
   environment: ${self:custom.environment}
-  # vpc:
-  #   securityGroupIds: ${self:custom.${self:provider.stage}.securityGroups}
-  #   subnetIds: ${self:custom.${self:provider.stage}.subnetIds}
+ 
   logs:
     restApi: true
 custom:
@@ -29,17 +26,11 @@ custom:
     accountId: ${file(./.env.yml):accountId}
   defaultStage: dev
   dev:
-    # account: 
     profile: mahboobeh
-    # securityGroups:
-    #   - sg-0e9ae22b985c76217
-    # subnetIds:
-    #   - subnet-048fa0e63f6e41f06
-    #   - subnet-0e24c2bd5d8d211c3
-    #   - subnet-01a5ccf2bf0b3c60f
+  
 
 
-resources: # CloudFormation template syntax
+resources:
   Resources:
     usersTable:
       Type: AWS::DynamoDB::Table

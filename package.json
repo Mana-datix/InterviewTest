@@ -1,0 +1,20 @@
+{
+  "name": "teleresult-interview-test-phase-ii",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1096.0",
+    "aws-serverless-express": "^3.4.0",
+    "uuid": "^8.3.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/snippets/teleresults/XBkoEz/teleresult-interview-test-phase-ii.git"
+  },
+  "author": "Mana Shariat",
+  "license": "ISC"
+}

@@ -1,0 +1,107 @@
+service: InterviewTest
+provider:
+  name: aws
+  stage: ${opt:stage, self:custom.defaultStage}
+  profile: ${self:custom.${self:provider.stage}.profile}
+  runtime: nodejs12.x
+  timeout: 30
+  versionFunctions: false
+  region: ap-southeast-2
+
+  # topicName: sendUserInfo
+  iamManagedPolicies:
+    - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+    - arn:aws:iam::aws:policy/AmazonSNSFullAccess
+    - arn:aws:iam::aws:policy/AmazonSQSFullAccess
+  environment: ${self:custom.environment}
+  # vpc:
+  #   securityGroupIds: ${self:custom.${self:provider.stage}.securityGroups}
+  #   subnetIds: ${self:custom.${self:provider.stage}.subnetIds}
+  logs:
+    restApi: true
+custom:
+  environment: 
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    region: ${opt:region, self:provider.region, ap-southeast-2}
+    topicName: sendUserInfo
+    stage: ${opt:stage, self:custom.defaultStage}
+    boardQueueName: ${self:resources.Resources.boardSQSQueue.Properties.QueueName}
+    accountId: ${file(./.env.yml):accountId}
+  defaultStage: dev
+  dev:
+    # account: 
+    profile: mahboobeh
+    # securityGroups:
+    #   - sg-0e9ae22b985c76217
+    # subnetIds:
+    #   - subnet-048fa0e63f6e41f06
+    #   - subnet-0e24c2bd5d8d211c3
+    #   - subnet-01a5ccf2bf0b3c60f
+
+
+resources: # CloudFormation template syntax
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: usersTable
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    boardsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: boardsTable
+        AttributeDefinitions:
+          - AttributeName: boardName
+            AttributeType: S
+        KeySchema:
+          - AttributeName: boardName
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    boardSQSQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: sqs-queue-${opt:stage, self:provider.stage}
+functions:
+  postUserInfo:
+    handler: src/postUserInfo.handler
+    events:
+      - http:
+          method: Post
+          path: postUserInfo
+          cors: false
+          private: false
+  getUser:
+    handler: src/getUser.handler
+    events:
+      - http:
+          method: get
+          path: user/{email}
+          cors: false
+          private: false
+  addUser:
+    handler: src/addUser.handler
+    events:
+      - sns: sendUserInfo
+  postBoardInfo:
+    handler: src/postBoardInfo.handler
+    events:
+      - http:
+          method: Post
+          path: postBoardInfo
+          cors: false
+          private: false
+  addBoard:
+    handler: src/addBoard.handler
+    events:
+      - sqs: arn:aws:sqs:${self:provider.region}:${self:custom.environment.accountId}:${self:custom.environment.boardQueueName}
+        
